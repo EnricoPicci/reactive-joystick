@@ -1,0 +1,96 @@
+<html>
+<header>
+    <link rel="stylesheet" href="joystick.css">
+    <title>Joystick No Rx</title>
+</header>
+<body onLoad="activateJoytick()">
+    <div id="zone_joystick">
+        <div class="joystickPad" id="joystickPad"
+            [style.left]="position.left" [style.top]="position.top">
+            <div class="back"></div>
+            <div class="front" id="handle"></div>
+        </div>
+    </div>
+</body>
+
+<script>
+    const handle = document.getElementById("handle");
+
+    function activateJoytick() {
+        handle.addEventListener('mousedown', joystickActivatedNoRxJS);
+    }
+    function joystickActivatedNoRxJS() {
+        document.addEventListener('mousemove', showJoystickHandleInNewPosition);
+        document.addEventListener('mouseup', joystickReleasedNoRxJS);
+        joystickActivated();
+    }
+    function joystickReleasedNoRxJS() {
+        document.removeEventListener('mousemove', showJoystickHandleInNewPosition);
+        document.removeEventListener('mouseup', joystickReleasedNoRxJS);
+        joystickReleased();
+    }
+
+    function buildJoystickEvent(event) {
+        const pointerPos = {
+            x: event.clientX,
+            y: event.clientY
+        };
+        startPosition = {x: 120, y: 120};
+        let clampedPos;
+
+        let dist = distance(pointerPos, startPosition);
+        const eventAngle = angle(pointerPos, startPosition);
+
+        if (dist > 50) {
+            dist = 50;
+            clampedPos = findCoord(startPosition, dist, eventAngle);
+        } else {
+            clampedPos = pointerPos;
+        }
+        return clampedPos;
+    }
+
+    function distance(p1, p2) {
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        return Math.sqrt((dx * dx) + (dy * dy));
+    };
+    function angle(p1, p2) {
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+
+        return degrees(Math.atan2(dy, dx));
+    };
+    function findCoord(p, dist, aDegrees) {
+        const aRadians = radians(aDegrees);
+        const x = p.x - dist * Math.cos(aRadians);
+        const y = p.y - dist * Math.sin(aRadians);
+        return {x, y};
+    };
+    function radians(aDegrees) {
+        return aDegrees * (Math.PI / 180);
+    };
+    function degrees(aRadians) {
+        return aRadians * (180 / Math.PI);
+    };
+    function showJoystickHandleInNewPosition(event) {
+        const clampedPos = buildJoystickEvent(event);
+        const xPosition = Math.round((clampedPos.x - startPosition.x) * 100) / 100 + 'px';
+        const yPosition = Math.round((clampedPos.y - startPosition.y) * 100) / 100 + 'px';
+
+        handle.style.left = xPosition;
+        handle.style.top = yPosition;;
+    }
+    function joystickActivated() {
+        handle.style.transition = null;
+    }
+    function joystickReleased() {
+        handle.style.transition = 'top 250ms, left 250ms';
+        handle.style.left = '0px';
+        handle.style.top = '0px';
+    }
+
+
+</script>
+
+</html>
